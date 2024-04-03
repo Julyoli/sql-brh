@@ -252,17 +252,32 @@ SELECT colaborador, nome, TRUNC (MONTHS_BETWEEN(SYSDATE, data_nascimento)/12)
 AS idade FROM brh.dependente
 WHERE TRUNC (MONTHS_BETWEEN(SYSDATE, data_nascimento)/12) <18
 
-FIM ATIVIDADES Semana 2*/
+/*FIM ATIVIDADES Semana 2*/
 
 /*Semana 3
 Filtrar dependentes
 Criar uma consulta que liste os dependentes que nasceram em abril, maio ou junho, ou tenham a letra "h" no nome.;
 Regras de aceitação:Ordene primeiramente pelo nome do colaborador, depois pelo nome do dependente.*/
 
+SELECT * FROM brh.colaborador
+SELECT * FROM brh.dependente
+
+SELECT B.NOME AS NOME_COLABORADOR, A.NOME AS NOME_DEPENDENTE, A.DATA_NASCIMENTO
+FROM brh.dependente A INNER JOIN brh.colaborador B
+ON A.COLABORADOR = B.MATRICULA
+WHERE EXTRACT(Month FROM A.DATA_NASCIMENTO) IN (4,5,6) AND (A.NOME LIKE '%H%' OR A.NOME LIKE '%h%')
+ORDER BY NOME_COLABORADOR, NOME_DEPENDENTE;
 
 /*Listar colaborador com maior salário
 Criar consulta que liste nome e o salário do colaborador com o maior salário;
 OBS.: A consulta deve ser flexível para continuar funcionando caso surja algum funcionário com salário maior que o do Zico.*/
+
+SELECT * FROM brh.colaborador
+
+SELECT NOME, SALARIO
+FROM brh.colaborador
+WHERE SALARIO = (SELECT MAX (salario) AS maior_salario
+FROM brh.colaborador)
 
 /*Relatório de senioridade
 A senioridade dos colaboradores é determinada pela faixa salarial:
@@ -274,15 +289,40 @@ Tarefa
 Criar uma consulta que liste a matrícula, nome, salário, e nível de senioridade do colaborador;
 Regras de aceitação
 Ordene a listagem por senioridade e por nome.
-Exemplo da saída pode ser vista no anexo abaixo.*/
 
+SELECT * FROM brh.colaborador*/
+
+SELECT MATRICULA, NOME, SALARIO, 
+CASE 
+WHEN SALARIO <= 3000 THEN 'Junior'
+WHEN SALARIO > 3000 AND SALARIO <= 6000 THEN 'Pleno'
+WHEN SALARIO > 6000 AND SALARIO <= 20000 THEN 'Sênior'
+ELSE 'Corpo diretor'
+END AS SENIORIDADE
+FROM brh.colaborador
+order by 4,2
 
 /*Listar quantidade de colaboradores em projetos
 Criar consulta que liste o nome do departamento, nome do projeto e quantos colaboradores daquele departamento fazem parte do projeto;
 Regras de aceitação
 Ordene a consulta pelo nome do departamento e nome do projeto.
-A saída deve ser igual à imagem anexa abaixo.*/
+A saída deve ser igual à imagem anexa abaixo.
 
+SELECT * FROM brh.departamento
+SELECT * FROM brh.colaborador
+SELECT * FROM brh.atribuicao
+SELECT * FROM brh.projeto*/
+
+SELECT D.NOME AS DEPARTAMENTO, P.NOME AS PROJETO, 
+COUNT (*) AS QTDE_COLABORADORES FROM brh.departamento D
+INNER JOIN brh.colaborador C
+ON D.SIGLA = C.DEPARTAMENTO
+INNER JOIN brh.atribuicao A
+ON C.MATRICULA = A.COLABORADOR
+INNER JOIN brh.projeto P
+ON A.PROJETO = P.ID
+GROUP BY D.NOME, P.NOME
+ORDER BY D.NOME, P.NOME
 
 /*Listar colaboradores com mais dependentes
 Criar consulta que liste nome do colaborador e a quantidade de dependentes que ele possui;
@@ -291,7 +331,16 @@ No relatório deve ter somente colaboradores com 2 ou mais dependentes.
 Ordenar consulta pela quantidade de dependentes em ordem decrescente, e colaborador crescente.
 A saída deve ser igual à imagem anexa abaixo*/
 
-/*Relatório analítico de equipes
+SELECT C.NOME AS NOME_COLABORADOR,
+COUNT (*) AS QTD FROM brh.colaborador C
+INNER JOIN brh.dependente D
+ON C.MATRICULA = D.COLABORADOR
+GROUP BY C.NOME
+HAVING COUNT (*) >=2
+ORDER BY COUNT (*) DESC, C.NOME ASC
+
+/*IMPORTANTE.OPCIONAL
+Relatório analítico de equipes
 Crie uma consulta que liste:
 O nome do Departamento;
 O nome do chefe do Departamento;
@@ -304,14 +353,16 @@ Faça commit do arquivo.
 Regras de aceitação
 O resultado deve ser ordenado pelo nome do nome do projeto, nome do colaborador e nome do dependente.*/
 
-/*Listar faixa etária dos dependentes
+/*IMPORTANTE.OPCIONAL
+Listar faixa etária dos dependentes
 Criar consulta que liste o CPF do dependente, o nome do dependente, a data de nascimento (formato brasileiro), parentesco, matrícula do colaborador, a idade do dependente e sua faixa etária;
 Regras de aceitação
 Se o dependente tiver menos de 18 anos, informar a faixa etária Menor de idade;
 Se o dependente tiver 18 anos ou mais, informar faixa etária Maior de idade;
 Ordenar consulta por matrícula do colaborador e nome do dependente.*/
 
-/*Paginar listagem de colaboradores
+/*IMPORTANTE.OPCIONAL
+Paginar listagem de colaboradores
 Contexto
 O usuário quer paginar a listagem de colaboradores em páginas de 10 registros cada. 
 Há 26 colaboradores na base, então há 3 páginas:
@@ -324,7 +375,7 @@ OBS.: pense que novos registros podem ser inclusos à tabela; logo, a consulta nã
 Regras de aceitação
 Ordene pelo nome do colaborador.*/
 
-/*Desafio
+/*DESAFIO.OPCIONAL
 Relatório de plano de saúde
 O usuário quer saber quanto é a mensalidade que cada colaborador deve pagar ao plano de saúde. As regras de pagamento são:
 Cada nível de senioridade tem um percentual de contribuição diferente:
@@ -340,7 +391,7 @@ O valor a ser pago é a soma do percentual definido pela senioridade mais o valor
 Tarefa
 Crie uma consulta que exiba o relatório desejado pelo usuário;*/
 
-/*Desafio
+/*DESAFIO.OPCIONAL
 Listar colaboradores que participaram de todos os projetos
 Crie um relatório que informe os colaboradores que participaram de todos os projetos;
 OBS.: Pense que novos projetos podem ser cadastrados, então a consulta não deve ser fixada somente aos projetos atuais, mas ser flexível para projetos futuros.
